@@ -21,35 +21,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        if (request.email() == null || request.email().trim().isEmpty() ||
-            request.password() == null || request.password().length() < 6 ||
-            request.name() == null || request.name().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(new AuthResponse("Thông tin đăng ký không hợp lệ!", false, null));
-        }
-
-        if (userRepository.existsByEmail(request.email().trim().toLowerCase())) {
-            return ResponseEntity.ok(new AuthResponse("Email này đã được đăng ký sử dụng!", false, null));
-        }
-
-        // Hash password
-        String hashedPassword = hashPassword(request.password());
-
-        // Create user
-        User user = new User(
-            request.name().trim(),
-            request.email().trim().toLowerCase(),
-            hashedPassword
-        );
-
-        User savedUser = userRepository.save(user);
-
-        UserResponse userResponse = new UserResponse(
-            savedUser.getId(),
-            savedUser.getName(),
-            savedUser.getEmail()
-        );
-
-        return ResponseEntity.ok(new AuthResponse("Đăng ký tài khoản thành công!", true, userResponse));
+        return ResponseEntity.badRequest().body(new AuthResponse("Chức năng đăng ký tài khoản đã bị vô hiệu hóa!", false, null));
     }
 
     @PostMapping("/login")

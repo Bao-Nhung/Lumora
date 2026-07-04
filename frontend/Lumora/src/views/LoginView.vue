@@ -15,10 +15,12 @@ const emailFocused = ref(false)
 const passwordFocused = ref(false)
 const nameFocused = ref(false)
 
-// Simple reactive validation
+// Simple reactive validation (accepts email or alphanumeric username of length >= 3)
 const isEmailValid = computed(() => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(email.value)
+  if (!email.value) return false
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)
+  const isUsername = /^[a-zA-Z0-9_.-]{3,30}$/.test(email.value)
+  return isEmail || isUsername
 })
 
 const passwordStrength = computed(() => {
@@ -159,7 +161,7 @@ const handleSubmit = async () => {
           <div class="visual-text">
             <h2>Khai mở thế giới sáng tạo số</h2>
             <p>
-              Đăng ký thành viên để khám phá tất cả các mẫu thiết kế và công cụ tùy biến cực quang
+              Đăng nhập tài khoản để khám phá tất cả các mẫu thiết kế và công cụ tùy biến cực quang
               độc quyền.
             </p>
           </div>
@@ -169,13 +171,8 @@ const handleSubmit = async () => {
       <!-- Right Form panel -->
       <div class="form-panel">
         <div class="form-header">
-          <h2>{{ isSignUp ? 'Tạo Tài Khoản' : 'Chào Mừng Trở Lại' }}</h2>
-          <p>
-            {{ isSignUp ? 'Đã có tài khoản?' : 'Chưa có tài khoản?' }}
-            <button class="toggle-link" @click="toggleMode">
-              {{ isSignUp ? 'Đăng nhập' : 'Đăng ký ngay' }}
-            </button>
-          </p>
+          <h2>Chào Mừng Trở Lại</h2>
+          <p>Vui lòng đăng nhập để tiếp tục.</p>
         </div>
 
         <!-- Feedback Alert Banner -->
@@ -206,11 +203,11 @@ const handleSubmit = async () => {
 
           <!-- Email Address -->
           <div class="input-group" :class="{ focused: emailFocused || email }">
-            <label class="floating-label">Địa chỉ Email</label>
+            <label class="floating-label">Tên đăng nhập hoặc Email</label>
             <div class="input-wrapper">
               <Mail class="input-icon" :size="18" />
               <input
-                type="email"
+                type="text"
                 v-model="email"
                 class="form-input"
                 @focus="emailFocused = true"
