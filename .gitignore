@@ -1,0 +1,16 @@
+# Database files
+database/
+*.db
+*.mv.db
+*.trace.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Node modules
+node_modules/
+
+# OS files
+Thumbs.db
+.DS_Store

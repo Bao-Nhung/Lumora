@@ -45,7 +45,8 @@ public class AuthController {
         UserResponse userResponse = new UserResponse(
             user.getId(),
             user.getName(),
-            user.getEmail()
+            user.getEmail(),
+            user.getRole()
         );
 
         return ResponseEntity.ok(new AuthResponse("Đăng nhập tài khoản thành công!", true, userResponse));

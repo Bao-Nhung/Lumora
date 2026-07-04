@@ -21,13 +21,22 @@ public class LumoraApplication {
 	@Bean
 	public CommandLineRunner initDatabase(UserRepository userRepository) {
 		return args -> {
-			String email = "ngbao";
-			if (!userRepository.existsByEmail(email)) {
+			String emailUser = "ngbao";
+			if (!userRepository.existsByEmail(emailUser)) {
 				String password = "Bao56270";
 				String hashedPassword = hashPassword(password);
-				User defaultUser = new User("NgBao", email, hashedPassword);
+				User defaultUser = new User("NgBao", emailUser, hashedPassword, "USER");
 				userRepository.save(defaultUser);
-				System.out.println("Default user pre-created: NgBao / Bao56270");
+				System.out.println("Default user pre-created: NgBao / Bao56270 (USER)");
+			}
+
+			String emailAdmin = "admin";
+			if (!userRepository.existsByEmail(emailAdmin)) {
+				String password = "Admin56270";
+				String hashedPassword = hashPassword(password);
+				User defaultAdmin = new User("Admin", emailAdmin, hashedPassword, "ADMIN");
+				userRepository.save(defaultAdmin);
+				System.out.println("Default admin pre-created: Admin / Admin56270 (ADMIN)");
 			}
 		};
 	}

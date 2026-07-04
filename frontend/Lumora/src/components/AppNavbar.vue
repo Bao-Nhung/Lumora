@@ -1,25 +1,54 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { Sparkles, LogIn } from '@lucide/vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { Sparkles, LogIn, LogOut, LayoutDashboard } from '@lucide/vue'
 
 const router = useRouter()
+const route = useRoute()
 const isScrolled = ref(false)
+
+interface UserSession {
+  id: number
+  name: string
+  email: string
+}
+
+const currentUser = ref<UserSession | null>(null)
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 20
 }
 
+const checkUserSession = () => {
+  const userStr = localStorage.getItem('user')
+  currentUser.value = userStr ? JSON.parse(userStr) : null
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  checkUserSession()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
+// Listen to route changes to update user session state in navbar
+watch(
+  () => route.path,
+  () => {
+    checkUserSession()
+  }
+)
+
 const navigateTo = (path: string) => {
   router.push(path)
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('user')
+  currentUser.value = null
+  router.push('/')
 }
 </script>
 
@@ -35,12 +64,29 @@ const navigateTo = (path: string) => {
         <span class="logo-text">Lumora</span>
       </div>
 
-      <!-- Action Button -->
+      <!-- Action Buttons / User Info -->
       <div class="nav-actions">
-        <router-link to="/login" class="login-btn">
-          <LogIn :size="16" />
-          <span>Sign In</span>
-        </router-link>
+        <template v-if="currentUser">
+          <div class="user-nav-menu">
+            <span class="welcome-user">
+              Xin chào, <strong>{{ currentUser.name }}</strong>
+            </span>
+            <router-link v-if="currentUser.role === 'ADMIN'" to="/dashboard" class="dashboard-btn">
+              <LayoutDashboard :size="15" />
+              <span>Bảng điều khiển</span>
+            </router-link>
+            <button @click="handleLogout" class="logout-btn" title="Đăng xuất">
+              <LogOut :size="15" />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="login-btn">
+            <LogIn :size="16" />
+            <span>Sign In</span>
+          </router-link>
+        </template>
       </div>
     </div>
   </nav>
@@ -118,6 +164,7 @@ const navigateTo = (path: string) => {
   letter-spacing: -0.03em;
   background: linear-gradient(135deg, var(--white), rgba(255, 255, 255, 0.7));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   transition: var(--transition-fast);
 }
@@ -126,6 +173,65 @@ const navigateTo = (path: string) => {
   background: linear-gradient(135deg, var(--purple), var(--pink));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* User Menu when logged in */
+.user-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.welcome-user {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.welcome-user strong {
+  color: var(--white);
+}
+
+.dashboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: var(--purple);
+  transition: var(--transition-smooth);
+}
+
+.dashboard-btn:hover {
+  background: rgba(139, 92, 246, 0.18);
+  border-color: var(--purple);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+  transform: translateY(-1px);
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.logout-btn:hover {
+  background: rgba(236, 72, 153, 0.08);
+  border-color: rgba(236, 72, 153, 0.25);
+  color: var(--pink);
+  transform: translateY(-1px);
 }
 
 /* Action Button */

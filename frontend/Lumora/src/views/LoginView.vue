@@ -123,7 +123,11 @@ const handleSubmit = async () => {
         localStorage.setItem('user', JSON.stringify(data.user))
         // Delay redirect so user can see success message
         setTimeout(() => {
-          router.push('/')
+          if (data.user.role === 'ADMIN') {
+            router.push('/dashboard')
+          } else {
+            router.push('/')
+          }
         }, 1500)
       } else {
         // Successful registration -> switch to login after delay

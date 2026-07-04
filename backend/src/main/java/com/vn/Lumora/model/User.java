@@ -23,6 +23,9 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -36,6 +39,14 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.role = "USER";
+    }
+
+    public User(String name, String email, String password, String role) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
     }
 
     // Getters and Setters
@@ -50,6 +61,9 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
