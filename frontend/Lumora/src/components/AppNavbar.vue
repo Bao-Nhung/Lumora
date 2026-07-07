@@ -11,6 +11,7 @@ interface UserSession {
   id: number
   name: string
   email: string
+  role?: string
 }
 
 const currentUser = ref<UserSession | null>(null)

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Sparkles, Zap, Shield, ChevronRight, Eye, RefreshCw, Palette } from '@lucide/vue'
+import { Sparkles, Zap, Shield, ChevronRight, Eye, RefreshCw, Palette, Shuffle } from '@lucide/vue'
 
 const router = useRouter()
 
@@ -12,51 +12,62 @@ interface AuroraConfig {
   pinkBlobColor: string
   blueBlobColor: string
   cyanBlobColor: string
+  preset: string
 }
 
 // Inject shared aurora configuration
 const auroraConfig = inject<AuroraConfig>('auroraConfig', {
   speed: 3,
   intensity: 0.7,
-  purpleBlobColor: 'var(--purple)',
-  pinkBlobColor: 'var(--pink)',
-  blueBlobColor: 'var(--blue)',
-  cyanBlobColor: 'var(--cyan)',
+  purpleBlobColor: '#8b5cf6',
+  pinkBlobColor: '#ec4899',
+  blueBlobColor: '#3b82f6',
+  cyanBlobColor: '#06b6d4',
+  preset: 'aurora',
 })
 
-// Local options for the customizer
-const selectedPreset = ref('aurora')
+// Options for the customizer presets
 const presets = {
   aurora: {
-    purpleBlobColor: 'var(--purple)',
-    pinkBlobColor: 'var(--pink)',
-    blueBlobColor: 'var(--blue)',
-    cyanBlobColor: 'var(--cyan)',
+    purpleBlobColor: '#8b5cf6',
+    pinkBlobColor: '#ec4899',
+    blueBlobColor: '#3b82f6',
+    cyanBlobColor: '#06b6d4',
   },
   neonFire: {
-    purpleBlobColor: '#F59E0B', // Orange
-    pinkBlobColor: '#EF4444', // Red
-    blueBlobColor: '#EC4899', // Pink
-    cyanBlobColor: '#8B5CF6', // Purple
+    purpleBlobColor: '#f59e0b', // Orange
+    pinkBlobColor: '#ef4444', // Red
+    blueBlobColor: '#ec4899', // Pink
+    cyanBlobColor: '#8b5cf6', // Purple
   },
   cyberpunk: {
-    purpleBlobColor: '#EC4899', // Pink
-    pinkBlobColor: '#06B6D4', // Cyan
-    blueBlobColor: '#10B981', // Green
-    cyanBlobColor: '#F59E0B', // Yellow
+    purpleBlobColor: '#ec4899', // Pink
+    pinkBlobColor: '#06b6d4', // Cyan
+    blueBlobColor: '#10b981', // Green
+    cyanBlobColor: '#f59e0b', // Yellow
   },
   deepSpace: {
-    purpleBlobColor: '#4F46E5', // Indigo
-    pinkBlobColor: '#3B82F6', // Blue
-    blueBlobColor: '#09090B', // Dark
-    cyanBlobColor: '#8B5CF6', // Purple
+    purpleBlobColor: '#4f46e5', // Indigo
+    pinkBlobColor: '#3b82f6', // Blue
+    blueBlobColor: '#09090b', // Dark
+    cyanBlobColor: '#8b5cf6', // Purple
   },
 }
 
+// Input refs for opening native color pickers programmatically
+const purpleInputRef = ref<HTMLInputElement | null>(null)
+const pinkInputRef = ref<HTMLInputElement | null>(null)
+const blueInputRef = ref<HTMLInputElement | null>(null)
+const cyanInputRef = ref<HTMLInputElement | null>(null)
+
+const triggerColorPicker = (inputRef: HTMLInputElement | null) => {
+  inputRef?.click()
+}
+
 const applyPreset = (presetName: keyof typeof presets) => {
-  selectedPreset.value = presetName as string
-  const config = presets[presetName]
   if (auroraConfig) {
+    auroraConfig.preset = presetName as string
+    const config = presets[presetName]
     auroraConfig.purpleBlobColor = config.purpleBlobColor
     auroraConfig.pinkBlobColor = config.pinkBlobColor
     auroraConfig.blueBlobColor = config.blueBlobColor
@@ -70,6 +81,35 @@ const resetConfig = () => {
     auroraConfig.intensity = 0.7
   }
   applyPreset('aurora')
+}
+
+// Helper to generate a random vibrant/pastel color in hex
+const getRandomVibrantColor = () => {
+  const h = Math.floor(Math.random() * 360)
+  const s = Math.floor(Math.random() * 20) + 75 // 75% - 95% saturation
+  const l = Math.floor(Math.random() * 15) + 50 // 50% - 65% lightness (bright and glowing)
+  return hslToHex(h, s, l)
+}
+
+const hslToHex = (h: number, s: number, l: number) => {
+  l /= 100
+  const a = (s * Math.min(l, 1 - l)) / 100
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+    return Math.round(255 * color).toString(16).padStart(2, '0')
+  }
+  return `#${f(0)}${f(8)}${f(4)}`
+}
+
+const randomizeColors = () => {
+  if (auroraConfig) {
+    auroraConfig.purpleBlobColor = getRandomVibrantColor()
+    auroraConfig.pinkBlobColor = getRandomVibrantColor()
+    auroraConfig.blueBlobColor = getRandomVibrantColor()
+    auroraConfig.cyanBlobColor = getRandomVibrantColor()
+    auroraConfig.preset = 'custom'
+  }
 }
 
 // Stats counter mockup
@@ -160,7 +200,7 @@ const scrollToSection = (id: string) => {
       </div>
 
       <div class="customizer-grid">
-        <!-- Color Presets -->
+        <!-- Color Presets & Custom Pickers -->
         <div class="control-group">
           <label class="control-label">Bảng Phối Màu Nền</label>
           <div class="presets-buttons">
@@ -168,7 +208,7 @@ const scrollToSection = (id: string) => {
               v-for="(config, name) in presets"
               :key="name"
               class="preset-btn"
-              :class="{ active: selectedPreset === name }"
+              :class="{ active: auroraConfig.preset === name }"
               @click="applyPreset(name as keyof typeof presets)"
             >
               <span class="preset-name">{{
@@ -184,8 +224,95 @@ const scrollToSection = (id: string) => {
                 <span class="dot" :style="{ backgroundColor: config.purpleBlobColor }"></span>
                 <span class="dot" :style="{ backgroundColor: config.pinkBlobColor }"></span>
                 <span class="dot" :style="{ backgroundColor: config.blueBlobColor }"></span>
+                <span class="dot" :style="{ backgroundColor: config.cyanBlobColor }"></span>
               </div>
             </button>
+          </div>
+
+          <!-- Custom Colors Picker UI -->
+          <div class="custom-colors-wrapper">
+            <label class="control-label">Màu Sắc Tự Chọn</label>
+            <div class="color-pickers-grid">
+              <div class="color-picker-item">
+                <button
+                  class="color-picker-btn"
+                  :style="{
+                    backgroundColor: auroraConfig.purpleBlobColor,
+                    boxShadow: `0 0 15px ${auroraConfig.purpleBlobColor}80`,
+                  }"
+                  @click="triggerColorPicker(purpleInputRef)"
+                  title="Chọn màu tím cực quang"
+                ></button>
+                <input
+                  ref="purpleInputRef"
+                  type="color"
+                  v-model="auroraConfig.purpleBlobColor"
+                  class="hidden-color-input"
+                  @input="auroraConfig.preset = 'custom'"
+                />
+                <span class="picker-name">Tím</span>
+              </div>
+
+              <div class="color-picker-item">
+                <button
+                  class="color-picker-btn"
+                  :style="{
+                    backgroundColor: auroraConfig.pinkBlobColor,
+                    boxShadow: `0 0 15px ${auroraConfig.pinkBlobColor}80`,
+                  }"
+                  @click="triggerColorPicker(pinkInputRef)"
+                  title="Chọn màu hồng"
+                ></button>
+                <input
+                  ref="pinkInputRef"
+                  type="color"
+                  v-model="auroraConfig.pinkBlobColor"
+                  class="hidden-color-input"
+                  @input="auroraConfig.preset = 'custom'"
+                />
+                <span class="picker-name">Hồng</span>
+              </div>
+
+              <div class="color-picker-item">
+                <button
+                  class="color-picker-btn"
+                  :style="{
+                    backgroundColor: auroraConfig.blueBlobColor,
+                    boxShadow: `0 0 15px ${auroraConfig.blueBlobColor}80`,
+                  }"
+                  @click="triggerColorPicker(blueInputRef)"
+                  title="Chọn màu xanh lam"
+                ></button>
+                <input
+                  ref="blueInputRef"
+                  type="color"
+                  v-model="auroraConfig.blueBlobColor"
+                  class="hidden-color-input"
+                  @input="auroraConfig.preset = 'custom'"
+                />
+                <span class="picker-name">Lam</span>
+              </div>
+
+              <div class="color-picker-item">
+                <button
+                  class="color-picker-btn"
+                  :style="{
+                    backgroundColor: auroraConfig.cyanBlobColor,
+                    boxShadow: `0 0 15px ${auroraConfig.cyanBlobColor}80`,
+                  }"
+                  @click="triggerColorPicker(cyanInputRef)"
+                  title="Chọn màu xanh ngọc"
+                ></button>
+                <input
+                  ref="cyanInputRef"
+                  type="color"
+                  v-model="auroraConfig.cyanBlobColor"
+                  class="hidden-color-input"
+                  @input="auroraConfig.preset = 'custom'"
+                />
+                <span class="picker-name">Ngọc</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -224,6 +351,10 @@ const scrollToSection = (id: string) => {
       </div>
 
       <div class="customizer-footer">
+        <button class="random-btn" @click="randomizeColors" title="Trộn màu cực quang ngẫu nhiên">
+          <Shuffle :size="14" />
+          <span>Trộn màu ngẫu nhiên</span>
+        </button>
         <button class="reset-btn" @click="resetConfig">
           <RefreshCw :size="14" />
           <span>Khôi phục mặc định</span>
@@ -540,6 +671,74 @@ const scrollToSection = (id: string) => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+.custom-colors-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.color-pickers-grid {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.color-picker-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-picker-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.color-picker-btn:hover {
+  transform: scale(1.15);
+  border-color: #ffffff;
+}
+
+.hidden-color-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.picker-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.random-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: var(--transition-fast);
+  margin-right: auto;
+}
+
+.random-btn:hover {
+  color: var(--cyan);
 }
 
 .slider-wrapper {

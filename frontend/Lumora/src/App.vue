@@ -1,20 +1,36 @@
 <script setup lang="ts">
-import { reactive, provide } from 'vue'
+import { reactive, provide, watch } from 'vue'
 import AuroraBackground from '@/components/AuroraBackground.vue'
 import ShootingStars from '@/components/ShootingStars.vue'
 import CustomCursor from '@/components/CustomCursor.vue'
 import Navbar from '@/components/AppNavbar.vue'
 import Footer from '@/components/AppFooter.vue'
 
-// Define the reactive configuration for the AuroraBackground
-const auroraConfig = reactive({
+const DEFAULT_CONFIG = {
   speed: 3,
   intensity: 0.7,
-  purpleBlobColor: 'var(--purple)',
-  pinkBlobColor: 'var(--pink)',
-  blueBlobColor: 'var(--blue)',
-  cyanBlobColor: 'var(--cyan)',
-})
+  purpleBlobColor: '#8b5cf6',
+  pinkBlobColor: '#ec4899',
+  blueBlobColor: '#3b82f6',
+  cyanBlobColor: '#06b6d4',
+  preset: 'aurora'
+}
+
+// Load saved configuration or use default
+const savedConfig = localStorage.getItem('aurora-customizer-settings')
+const initialConfig = savedConfig ? JSON.parse(savedConfig) : { ...DEFAULT_CONFIG }
+
+// Define the reactive configuration for the AuroraBackground
+const auroraConfig = reactive(initialConfig)
+
+// Save configuration when changed
+watch(
+  auroraConfig,
+  (newConfig) => {
+    localStorage.setItem('aurora-customizer-settings', JSON.stringify(newConfig))
+  },
+  { deep: true }
+)
 
 // Provide it to child components (e.g. HomeView can modify it, AuroraBackground consumes it)
 provide('auroraConfig', auroraConfig)
